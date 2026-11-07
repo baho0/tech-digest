@@ -1,0 +1,20 @@
+[Unit]
+Description=Tech Digest - build and email the daily digest
+Wants=network-online.target
+After=network-online.target
+
+[Service]
+Type=oneshot
+User=techdigest
+Group=techdigest
+WorkingDirectory=/opt/tech-digest
+# Collects once more, then sends. Safe to re-run: a day already sent is skipped.
+ExecStart=/opt/tech-digest/.venv/bin/techdigest digest
+TimeoutStartSec=20min
+
+# Hardening
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/opt/tech-digest/data
