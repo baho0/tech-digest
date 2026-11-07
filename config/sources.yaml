@@ -1,0 +1,147 @@
+# Source registry.
+#
+# Common keys:
+#   name           unique id (shown in the email)
+#   type           rss | techmeme | hackernews | lobsters | hf_papers | cisa_kev | github_releases
+#   tier           1 = primary/editorial, 2 = solid news outlet, 3 = high-volume / mixed quality
+#   category_hint  ai | security | software | industry   (optional, nudges classification)
+#   enabled        default true
+#   options        type-specific settings
+
+sources:
+  # ---------------------------------------------------------------- general signal
+  - name: Hacker News
+    type: hackernews
+    tier: 2
+    options:
+      min_points: 80          # only stories that already got real traction
+      lookback_hours: 30
+      max_items: 150
+
+  - name: Lobsters
+    type: lobsters
+    tier: 2
+    options:
+      min_score: 15
+
+  # ---------------------------------------------------------------- industry / hardware
+  - name: Techmeme
+    type: techmeme
+    tier: 1
+    category_hint: industry
+    url: https://www.techmeme.com/feed.xml
+
+  - name: Ars Technica
+    type: rss
+    tier: 2
+    url: https://feeds.arstechnica.com/arstechnica/index
+
+  - name: The Register
+    type: rss
+    tier: 2
+    url: https://www.theregister.com/headlines.atom
+
+  - name: ServeTheHome
+    type: rss
+    tier: 3
+    category_hint: industry
+    url: https://www.servethehome.com/feed/
+
+  - name: Phoronix
+    type: rss
+    tier: 3
+    category_hint: software
+    url: https://www.phoronix.com/rss.php
+
+  # ---------------------------------------------------------------- AI / ML (primary sources)
+  - name: OpenAI
+    type: rss
+    tier: 1
+    category_hint: ai
+    url: https://openai.com/news/rss.xml
+
+  - name: Google DeepMind
+    type: rss
+    tier: 1
+    category_hint: ai
+    url: https://deepmind.google/blog/rss.xml
+
+  - name: Google AI Blog
+    type: rss
+    tier: 1
+    category_hint: ai
+    url: https://blog.google/technology/ai/rss/
+
+  - name: Hugging Face Blog
+    type: rss
+    tier: 2
+    category_hint: ai
+    url: https://huggingface.co/blog/feed.xml
+
+  - name: HF Daily Papers
+    type: hf_papers
+    tier: 2
+    category_hint: ai
+    url: https://huggingface.co/api/daily_papers
+    options:
+      min_upvotes: 25
+      max_items: 5
+
+  # ---------------------------------------------------------------- security
+  - name: CISA KEV
+    type: cisa_kev
+    tier: 1
+    category_hint: security
+    url: https://www.cisa.gov/sites/default/files/feeds/known_exploited_vulnerabilities.json
+
+  - name: BleepingComputer
+    type: rss
+    tier: 2
+    category_hint: security
+    url: https://www.bleepingcomputer.com/feed/
+
+  - name: Krebs on Security
+    type: rss
+    tier: 1
+    category_hint: security
+    url: https://krebsonsecurity.com/feed/
+
+  - name: Project Zero
+    type: rss
+    tier: 1
+    category_hint: security
+    url: https://googleprojectzero.blogspot.com/feeds/posts/default
+
+  - name: SecurityWeek
+    type: rss
+    tier: 2
+    category_hint: security
+    url: https://www.securityweek.com/feed/
+
+  # ---------------------------------------------------------------- software / infra
+  - name: LWN
+    type: rss
+    tier: 1
+    category_hint: software
+    url: https://lwn.net/headlines/rss
+
+  - name: GitHub Releases
+    type: github_releases
+    tier: 1
+    category_hint: software
+    options:
+      # Only releases whose last version component is 0 are kept (x.y.0 / REL_18_0),
+      # pre-releases (alpha/beta/rc) are dropped. level: major keeps only x.0.0.
+      repos:
+        - {repo: python/cpython, feed: tags, label: Python}
+        - {repo: golang/go, feed: tags, label: Go}
+        - {repo: rust-lang/rust, label: Rust}
+        - {repo: nodejs/node, label: Node.js, level: major}
+        - {repo: kubernetes/kubernetes, label: Kubernetes}
+        - {repo: denoland/deno, label: Deno}
+        - {repo: oven-sh/bun, label: Bun}
+        - {repo: llvm/llvm-project, label: LLVM}
+        - {repo: pytorch/pytorch, label: PyTorch}
+        - {repo: huggingface/transformers, label: Transformers}
+        - {repo: vllm-project/vllm, label: vLLM}
+        - {repo: postgres/postgres, feed: tags, label: PostgreSQL}
