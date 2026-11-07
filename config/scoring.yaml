@@ -109,4 +109,5 @@ selection:
   category_min_score:     # sections with naturally fewer engagement signals
     security: 3.5
     industry: 4.0
+    ai: 4.5               # a primary lab announcing a release (tier1 + event) must pass
   max_total: 25
