@@ -8,6 +8,25 @@ from .base import Source, parse_iso, register
 
 API = "https://lobste.rs/hottest.json"
 
+TAG_HINTS = {
+    "ai": "ai", "ml": "ai", "vibecoding": "ai",
+    "security": "security", "privacy": "security", "crypto": "security",
+    "hardware": "industry", "law": "industry", "culture": "industry",
+}
+SOFTWARE_TAGS = {
+    "release", "programming", "linux", "unix", "osdev", "compilers", "databases", "devops",
+    "networking", "distributed", "web", "browsers", "rust", "go", "python", "c", "c++",
+    "zig", "javascript", "haskell", "plt", "performance", "virtualization", "openbsd",
+    "freebsd", "netbsd", "nix", "git", "api", "wasm", "testing",
+}
+
+
+def hint_from_tags(tags: list[str]) -> str | None:
+    for t in tags:
+        if t in TAG_HINTS:
+            return TAG_HINTS[t]
+    return "software" if any(t in SOFTWARE_TAGS for t in tags) else None
+
 
 @register("lobsters")
 class LobstersSource(Source):
@@ -25,6 +44,7 @@ class LobstersSource(Source):
                     excerpt=truncate(s.get("description_plain") or "", 400) or None,
                     published_at=parse_iso(s.get("created_at")),
                     discussion_url=s.get("comments_url"),
+                    category_hint=hint_from_tags(s.get("tags", [])) or self.config.category_hint,
                     metrics={
                         "lobsters_score": float(s.get("score") or 0),
                         "lobsters_comments": float(s.get("comment_count") or 0),

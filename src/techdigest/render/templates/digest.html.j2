@@ -1,0 +1,45 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="color-scheme" content="light dark">
+<title>{{ digest.subject }}</title>
+</head>
+<body style="margin:0;padding:0;background:#f4f4f5;font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;color:#18181b;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#f4f4f5;">
+<tr><td align="center" style="padding:24px 12px;">
+<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="max-width:640px;background:#ffffff;border-radius:10px;">
+  <tr><td style="padding:28px 28px 8px 28px;">
+    <div style="font-size:12px;letter-spacing:.08em;text-transform:uppercase;color:#71717a;">Tech Digest</div>
+    <div style="font-size:24px;font-weight:700;margin-top:4px;">{{ digest.date }}</div>
+    <div style="font-size:13px;color:#71717a;margin-top:4px;">{{ digest.count }} stories selected from {{ digest.candidates }} candidates</div>
+  </td></tr>
+{% if not digest.sections %}
+  <tr><td style="padding:16px 28px 28px 28px;font-size:15px;color:#52525b;">Quiet day — nothing cleared the importance threshold.</td></tr>
+{% endif %}
+{% for section in digest.sections %}
+  <tr><td style="padding:24px 28px 4px 28px;">
+    <div style="font-size:13px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:{{ '#b45309' if section.key == 'top' else '#2563eb' }};border-bottom:2px solid {{ '#fde68a' if section.key == 'top' else '#dbeafe' }};padding-bottom:6px;">{{ section.title }}</div>
+  </td></tr>
+  {% for c in section.clusters %}
+  <tr><td style="padding:12px 28px;">
+    <a href="{{ c.url }}" style="font-size:16px;font-weight:600;color:#18181b;text-decoration:none;line-height:1.35;">{{ c.title }}</a>
+    <div style="font-size:12px;color:#71717a;margin-top:4px;">
+      {% if section.key == 'top' %}<span style="color:#2563eb;">{{ categories.get(c.category, c.category) }}</span> · {% endif %}
+      {{ c.url | domain }}{% if c.source_names | length > 1 %} · {{ c.source_names | length }} sources{% endif %}
+      {% for name, link in c.discussions %} · <a href="{{ link }}" style="color:#71717a;">{{ name }}{% if name == 'Hacker News' %} ({{ c.metric('hn_points') | int }} pts){% endif %}</a>{% endfor %}
+    </div>
+    {% if c.summary %}<div style="font-size:14px;color:#3f3f46;margin-top:6px;line-height:1.5;">{{ c.summary }}</div>{% endif %}
+    {% if explain %}<div style="font-family:ui-monospace,Menlo,monospace;font-size:11px;color:#a1a1aa;margin-top:6px;">score {{ '%.1f' | format(c.score) }} = {% for b in c.breakdown %}{{ b }}{% if not loop.last %}, {% endif %}{% endfor %} · [{{ c.source_names | join(', ') }}]</div>{% endif %}
+  </td></tr>
+  {% endfor %}
+{% endfor %}
+  <tr><td style="padding:24px 28px 28px 28px;font-size:11px;color:#a1a1aa;border-top:1px solid #f4f4f5;">
+    Ranked by source quality, cross-source coverage and community engagement; listicles, guides and blogspam are filtered out.
+  </td></tr>
+</table>
+</td></tr>
+</table>
+</body>
+</html>

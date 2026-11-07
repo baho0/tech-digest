@@ -28,6 +28,7 @@ sources:
   - name: Techmeme
     type: techmeme
     tier: 1
+    weight: 4.0             # editorially curated front page: trust it more
     category_hint: industry
     url: https://www.techmeme.com/feed.xml
 
@@ -97,6 +98,7 @@ sources:
   - name: BleepingComputer
     type: rss
     tier: 2
+    weight: 2.5             # specialist outlet: security news rarely gets HN traction
     category_hint: security
     url: https://www.bleepingcomputer.com/feed/
 
@@ -115,6 +117,7 @@ sources:
   - name: SecurityWeek
     type: rss
     tier: 2
+    weight: 2.0
     category_hint: security
     url: https://www.securityweek.com/feed/
 

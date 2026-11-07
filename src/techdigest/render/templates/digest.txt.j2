@@ -1,0 +1,26 @@
+TECH DIGEST — {{ digest.date }}
+{{ digest.count }} stories selected from {{ digest.candidates }} candidates
+{% if not digest.sections %}
+
+Quiet day — nothing cleared the importance threshold.
+{% endif %}
+{% for section in digest.sections %}
+
+== {{ section.title | upper }} ==
+{% for c in section.clusters %}
+
+* {{ c.title }}{% if section.key == 'top' %} [{{ categories.get(c.category, c.category) }}]{% endif %}
+
+  {{ c.url }}
+{% if c.summary %}
+  {{ c.summary }}
+{% endif %}
+{% for name, link in c.discussions %}
+  {{ name }}: {{ link }}
+{% endfor %}
+{% if explain %}
+  score {{ '%.1f' | format(c.score) }} = {% for b in c.breakdown %}{{ b }}{% if not loop.last %}, {% endif %}{% endfor %}
+
+{% endif %}
+{% endfor %}
+{% endfor %}

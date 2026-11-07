@@ -15,6 +15,7 @@ class SourceConfig(BaseModel):
     name: str
     type: str
     tier: int = 2
+    weight: float | None = None  # overrides the tier weight in scoring
     url: str | None = None
     category_hint: str | None = None
     enabled: bool = True

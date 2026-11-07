@@ -52,6 +52,7 @@ class Cluster:
 
     items: list[Item]
     category: str = ""
+    topic_hits: float = 0.0  # keyword evidence that this is a tech story at all
     score: float = 0.0
     breakdown: list[ScoreLine] = field(default_factory=list)
     summary: str | None = None

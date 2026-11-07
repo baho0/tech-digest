@@ -10,6 +10,8 @@ summarizer: excerpt    # excerpt | llm          (llm: not implemented yet)
 dedupe:
   title_similarity: 88   # rapidfuzz token_set_ratio threshold (0-100)
   min_title_tokens: 4    # titles shorter than this are only merged by URL
+  window_hours: 48       # cluster over this window; only stories with news in the
+                         # last TD_LOOKBACK_HOURS become candidates
 
 # ---------------------------------------------------------------- signals
 weights:
@@ -22,7 +24,7 @@ weights:
 
   # Engagement, log10-scaled: weight * log10(value + 1)
   engagement:
-    hn_points: 2.0         # 100 pts ≈ +4.0, 500 pts ≈ +5.4
+    hn_points: 1.6         # 100 pts ≈ +3.2, 500 pts ≈ +4.3
     hn_comments: 0.8
     lobsters_score: 2.5
     hf_upvotes: 2.0
@@ -42,9 +44,11 @@ boost_patterns:
   - {pattern: '\b(open[- ]sources?d?|open[- ]weights?)\b', weight: 1.5, label: open-source}
   - {pattern: '\bCVE-\d{4}-\d+\b', weight: 1.5, label: cve}
   - {pattern: '\b(zero[- ]day|0-day|actively exploited|exploited in the wild|ransomware|breach(ed)?|data leak|supply[- ]chain attack|backdoor)\b', weight: 2.0, label: security-incident}
-  - {pattern: '\b(ruling|antitrust|lawsuit|sues|fined?|regulat(ion|or|ors)|ban(s|ned)?|EU|FTC|DOJ|SEC)\b', weight: 1.0, label: legal}
+  - {pattern: '\b(ruling|antitrust|lawsuit|sues|fined?|regulat(ion|or|ors)|ban(s|ned)?)\b', weight: 1.0, label: legal}
+  - {pattern: '\b(EU|FTC|DOJ|SEC|CMA|FCC)\b', weight: 1.0, label: regulator, case: sensitive}
   - {pattern: '\bv?\d+\.\d+(\.\d+)?\b', weight: 0.8, label: version}
-  - {pattern: '\b(GA|generally available|stable release|end[- ]of[- ]life|deprecat(es|ed|ion))\b', weight: 1.0, label: lifecycle}
+  - {pattern: '\b(generally available|stable release|end[- ]of[- ]life|deprecat(es|ed|ion))\b', weight: 1.0, label: lifecycle}
+  - {pattern: '\bGA\b', weight: 1.0, label: lifecycle-ga, case: sensitive}
 
 # Negative "low-value content" signals. Not capped — clickbait should sink.
 penalty_patterns:
@@ -53,10 +57,16 @@ penalty_patterns:
   - {pattern: '\b(best|top)\s+\d+\b', weight: -6.0, label: ranking-listicle}
   - {pattern: '\b(deal|deals|discount|% off|sale|coupon|black friday|prime day|buying guide|review:)\b', weight: -6.0, label: shopping}
   - {pattern: '^(ask hn|tell hn)\b', weight: -6.0, label: ask-hn}
+  - {pattern: "^(i|i'm|i've|my|we|we're|we've|our)\\b", weight: -3.0, label: first-person-essay}
   - {pattern: '^show hn\b', weight: -1.5, label: show-hn}
   - {pattern: '\?\s*$', weight: -1.5, label: question-headline}
   - {pattern: '\b(podcast|webinar|livestream|newsletter|week in review|weekly roundup|this week in)\b', weight: -3.0, label: roundup}
   - {pattern: '\b(sponsored|partner content|promoted)\b', weight: -10.0, label: sponsored}
+  - {pattern: '\((19|20)\d{2}\)\s*$', weight: -5.0, label: old-content}     # HN "(2015)" reposts
+
+# Stories with zero tech keyword hits and no category hint (HN's history,
+# biology, local politics...). Engagement alone should not carry them.
+off_topic_penalty: -4.0
 
 # Domains whose content is overwhelmingly blogspam / self-promotion.
 domain_penalty: -8.0
@@ -78,16 +88,16 @@ blocked_domains:
 categories:
   ai:
     title: AI / ML
-    keywords: ['\bAI\b', 'artificial intelligence', '\bLLMs?\b', 'machine learning', '\bML\b', 'neural', 'model', 'GPT', 'Claude', 'Gemini', 'Llama', 'Mistral', 'DeepSeek', 'Qwen', 'OpenAI', 'Anthropic', 'DeepMind', 'transformer', 'diffusion', 'inference', 'training', 'agent', 'chatbot', 'reasoning', 'benchmark', 'Hugging Face', 'PyTorch', 'vLLM']
+    keywords: ['\bAI\b', 'artificial intelligence', '\bLLMs?\b', 'machine learning', '\bML\b', 'neural', 'model', 'GPT', 'Claude', 'Gemini', 'Llama', 'Mistral', 'DeepSeek', 'Qwen', 'OpenAI', 'Anthropic', 'DeepMind', 'transformer', 'diffusion', 'inference', 'training', 'agent', 'chatbot', 'reasoning', 'benchmark', 'Hugging Face', 'PyTorch', 'vLLM', 'ChatGPT', 'Codex', 'Copilot', 'Opus', 'Sonnet', 'Grok', 'Cursor', 'embedding', 'fine-tun', 'robot', 'humanoid']
   security:
     title: Security
-    keywords: ['CVE-', 'vulnerab', 'exploit', 'zero[- ]day', 'malware', 'ransomware', 'breach', 'hack(ed|ers?)\b', 'phishing', 'backdoor', 'botnet', 'patch(es|ed)? ', 'security', 'CISA', 'encryption', 'leak', 'spyware', 'APT\d*', 'authentication bypass', 'RCE']
+    keywords: ['CVE-', 'vulnerab', 'exploit', 'zero[- ]day', 'malware', 'ransomware', 'breach', 'hack(ed|ers?)\b', 'phishing', 'backdoor', 'botnet', 'patch(es|ed)? ', 'security', 'CISA', 'encryption', 'leak', 'spyware', 'APT\d*', 'authentication bypass', 'RCE', 'escape', 'jailbreak', 'privilege escalation', 'sandbox', 'MFA', 'credential']
   software:
     title: Software & Infrastructure
     keywords: ['release', 'Linux', 'kernel', 'Rust', 'Python', '\bGo\b', 'Golang', 'JavaScript', 'TypeScript', 'Node\.js', 'compiler', 'database', 'Postgres', 'SQLite', 'Kubernetes', 'Docker', 'cloud', 'AWS', 'Azure', 'GCP', 'open source', 'GitHub', 'API', 'framework', 'programming', 'developer', 'outage', 'browser', 'Firefox', 'Chrome', 'WebAssembly']
   industry:
     title: Industry & Hardware
-    keywords: ['chip', 'semiconductor', 'GPU', 'CPU', 'Nvidia', 'AMD', 'Intel', 'TSMC', 'Qualcomm', '\bArm\b', 'Apple', 'Microsoft', 'Google', 'Meta', 'Amazon', 'Samsung', 'acqui', 'IPO', 'valuation', 'funding', 'layoff', 'antitrust', 'regulat', 'lawsuit', 'tariff', 'export control', 'data center', 'quantum', 'smartphone', 'iPhone', 'satellite', 'SpaceX', 'Tesla']
+    keywords: ['chip', 'semiconductor', 'GPU', 'CPU', 'Nvidia', 'AMD', 'Intel', 'TSMC', 'Qualcomm', '\bArm\b', 'Apple', 'Microsoft', 'Google', 'Meta', 'Amazon', 'Samsung', 'acqui', 'IPO', 'valuation', 'funding', 'layoff', 'antitrust', 'regulat', 'lawsuit', 'tariff', 'export control', 'data center', 'quantum', 'smartphone', 'iPhone', 'satellite', 'SpaceX', 'Tesla', 'batter(y|ies)', 'sodium-ion', 'lithium', '\bEV\b', 'energy', 'Huawei', 'Xiaomi', 'Unitree', 'drone', 'startup', 'Series [A-F]', 'shipments', 'Cybertruck', 'Mac\b', 'iPad', 'Pixel', 'Android', 'Windows']
   default: industry
   hint_weight: 2.0        # a source's category_hint counts as this many keyword hits
 
@@ -96,4 +106,7 @@ selection:
   top_n: 5                # "Today's headlines" section
   per_category: 5         # max stories per category section (after top_n)
   min_score: 5.0          # quiet day? better a short email than filler
+  category_min_score:     # sections with naturally fewer engagement signals
+    security: 3.5
+    industry: 4.0
   max_total: 25
