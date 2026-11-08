@@ -49,7 +49,7 @@ uv run pytest
 Gereken: systemd'li bir Linux, `git`, [`uv`](https://docs.astral.sh/uv/).
 
 ```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh     # uv yoksa
+curl -LsSf https://astral.sh/uv/install.sh | env UV_INSTALL_DIR=/usr/local/bin sh   # uv yoksa
 git clone <repo-url> tech-digest && cd tech-digest
 sudo ./deploy/install.sh                            # /opt/tech-digest + systemd timer'ları
 sudo -u techdigest nano /opt/tech-digest/.env       # SMTP bilgileri
